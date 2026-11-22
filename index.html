@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gitskills · Git 用法指南</title>
+<meta name="description" content="gitskills 是一个练习 Git 常用操作的示例仓库。本页带你从克隆、分支、提交走到推送与合并，并附 21 条常用命令速查。">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%23b8431d'/%3E%3Ctext%20x='32'%20y='44'%20font-family='monospace'%20font-size='36'%20font-weight='bold'%20text-anchor='middle'%20fill='%23fff'%3EG%3C/text%3E%3C/svg%3E">
+<script>
+(function () {
+  var theme = 'light';
+  try {
+    theme = localStorage.getItem('gitskills-theme') ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  } catch (error) { /* storage may be unavailable */ }
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.classList.add('js');
+})();
+</script>
+<style>
+  :root {
+    --bg: #f6f1e8;
+    --bg-deep: #efe7db;
+    --surface: #fffdf8;
+    --surface-2: #f9f3e9;
+    --text: #211d18;
+    --text-soft: #5e574e;
+    --muted: #6f665a;
+    --border: #e4d9c8;
+    --border-strong: #cdbfa9;
+    --accent: #b8431d;
+    --accent-hover: #9d3514;
+    --accent-bright: #e8663d;
+    --accent-soft: #fbe4d9;
+    --accent-ink: #8f2f10;
+    --on-accent: #ffffff;
+    --ok: #2f7d54;
+    --code-bg: #1e1a16;
+    --code-bg-soft: #2a251f;
+    --code-text: #f2e9dc;
+    --code-dim: #a99c8b;
+    --grid: rgba(120, 95, 65, 0.09);
+    --shadow: 0 24px 60px -28px rgba(70, 45, 20, 0.35);
+    --shadow-soft: 0 10px 30px -18px rgba(70, 45, 20, 0.3);
+    --radius-lg: 22px;
+    --radius-md: 14px;
+    --font-sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --wrap: 1120px;
+  }
+
+  [data-theme="dark"] {
+    --bg: #12100d;
+    --bg-deep: #0d0b09;
+    --surface: #1b1814;
+    --surface-2: #211d18;
+    --text: #f3ece1;
+    --text-soft: #c8bfb2;
+    --muted: #9b9082;
+    --border: #302a23;
+    --border-strong: #463d32;
+    --accent: #ff7a4d;
+    --accent-hover: #ff966f;
+    --accent-bright: #ff9d7a;
+    --accent-soft: #3a2118;
+    --accent-ink: #ffb59b;
+    --on-accent: #1b120c;
+    --ok: #6fbf8f;
+    --code-bg: #0a0907;
+    --code-bg-soft: #17130f;
+    --code-text: #f2e9dc;
+    --code-dim: #a99c8b;
+    --grid: rgba(255, 220, 180, 0.055);
+    --shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.8);
+    --shadow-soft: 0 10px 30px -18px rgba(0, 0, 0, 0.65);
+  }
+
+  *,
+  *::before,
+  *::after { box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.7;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 52px 52px;
+    -webkit-mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, #000 20%, transparent 75%);
+    mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, #000 20%, transparent 75%);
+  }
+
+  [hidden] { display: none !important; }
+
+  html:not(.js) .copy-btn,
+  html:not(.js) #theme-toggle { display: none; }
+
+  a { color: var(--accent); text-underline-offset: 0.18em; }
+  a:hover { color: var(--accent-hover); }
+
+  :focus-visible {
+    outline: 3px solid var(--accent-bright);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  h1, h2, h3, h4 {
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  p { margin: 0; }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+  }
+
+  .wrap {
+    width: min(100% - 2.5rem, var(--wrap));
+    margin-inline: auto;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .skip-link {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 100;
+    padding: 0.6rem 1rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 700;
+    text-decoration: none;
+    transform: translateY(-200%);
+    transition: transform 0.15s ease;
+  }
+  .skip-link:focus { transform: translateY(0); color: var(--on-accent); }
+
+  /* Header */
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    min-height: 4.25rem;
+    width: min(100% - 2.5rem, var(--wrap));
+    margin-inline: auto;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--text);
+    font-weight: 800;
+    font-size: 1.02rem;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .brand:hover { color: var(--text); }
+  .brand svg { color: var(--accent); flex: none; }
+  .brand-sub {
+    margin-left: 0.5rem;
+    padding-left: 0.6rem;
+    border-left: 1px solid var(--border-strong);
+    color: var(--muted);
+    font-weight: 500;
+    font-size: 0.86rem;
+  }
+
+  .site-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: auto;
+  }
+
+  .site-nav a {
+    padding: 0.42rem 0.7rem;
+    border-radius: 999px;
+    color: var(--text-soft);
+    font-size: 0.88rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.15s ease, background-color 0.15s ease;
+  }
+  .site-nav a:hover { color: var(--text); background: var(--surface-2); }
+  .site-nav a[aria-current="true"] {
+    color: var(--accent-ink);
+    background: var(--accent-soft);
+    font-weight: 600;
+  }
+
+  .icon-button {
+    display: inline-grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    flex: none;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  }
+  .icon-button:hover { color: var(--accent); border-color: var(--border-strong); transform: translateY(-1px); }
+  .icon-button svg { width: 1.1rem; height: 1.1rem; }
+  .theme-icon-sun { display: none; }
+  [data-theme="dark"] .theme-icon-sun { display: block; }
+  [data-theme="dark"] .theme-icon-moon { display: none; }
+
+  /* Hero */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(3rem, 7vw, 5.5rem) 0 clamp(3rem, 6vw, 4.5rem);
+  }
+
+  .hero::after {
+    content: "";
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    width: 38rem;
+    height: 38rem;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-soft) 0%, transparent 68%);
+    opacity: 0.8;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    align-items: center;
+    gap: clamp(2rem, 5vw, 4rem);
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 1.2rem;
+    padding: 0.34rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text-soft);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  .eyebrow .dot {
+    width: 0.48rem;
+    height: 0.48rem;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-soft);
+  }
+
+  .hero h1 {
+    font-size: clamp(2.5rem, 5.4vw, 4.15rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+  .hero h1 em {
+    color: var(--accent);
+    font-style: normal;
+    white-space: nowrap;
+  }
+
+  .lead {
+    max-width: 34rem;
+    margin-top: 1.35rem;
+    color: var(--text-soft);
+    font-size: clamp(1rem, 1.4vw, 1.1rem);
+    line-height: 1.8;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.9rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.78rem 1.3rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 0.94rem;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  }
+  .btn svg { width: 1rem; height: 1rem; transition: transform 0.15s ease; }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: 0 10px 22px -12px color-mix(in srgb, var(--accent) 80%, transparent);
+  }
+  .btn-primary:hover {
+    background: var(--accent-hover);
+    color: var(--on-accent);
+    transform: translateY(-1px);
+  }
+  .btn-primary:hover svg { transform: translateX(2px); }
+
+  .btn-ghost {
+    border-color: var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+  }
+  .btn-ghost:hover { color: var(--accent); border-color: var(--accent); transform: translateY(-1px); }
+
+  .hero-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin: 2.4rem 0 0;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .hero-stats div { display: grid; gap: 0.1rem; }
+  .hero-stats dt {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 1.45rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .hero-stats dd {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.8rem;
+    letter-spacing: 0.03em;
+  }
+
+  /* Terminal */
+  .terminal {
+    position: relative;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--code-bg);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transform: rotate(0.6deg);
+  }
+
+  .terminal-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--code-bg-soft);
+  }
+
+  .terminal-dots { display: inline-flex; gap: 0.36rem; }
+  .terminal-dots span {
+    width: 0.62rem;
+    height: 0.62rem;
+    border-radius: 50%;
+    background: #5b4d40;
+  }
+  .terminal-dots span:nth-child(1) { background: #e8663d; }
+  .terminal-dots span:nth-child(2) { background: #d9a23c; }
+  .terminal-dots span:nth-child(3) { background: #5f9e6e; }
+
+  .terminal-title {
+    margin-left: 0.4rem;
+    color: var(--code-dim);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+  }
+
+  .terminal-body {
+    margin: 0;
+    padding: 1.2rem 1.3rem 1.35rem;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    color: var(--code-text);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.85;
+  }
+  .terminal-body code { font-family: inherit; font-size: inherit; }
+  .t-prompt { color: var(--accent-bright); user-select: none; }
+  .t-out { color: var(--code-dim); }
+  .t-cmd { color: var(--code-text); }
+
+  .terminal-caption {
+    padding: 0 1.3rem 1.1rem;
+    color: var(--code-dim);
+    font-size: 0.72rem;
+  }
+
+  /* Sections */
+  .section { padding: clamp(3.5rem, 7vw, 5.5rem) 0; }
+  .section-alt {
+    border-block: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+
+  .section-head {
+    max-width: 44rem;
+    margin-bottom: clamp(1.8rem, 4vw, 2.8rem);
+  }
+
+  .kicker {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.7rem;
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .kicker::before {
+    content: "";
+    width: 1.7rem;
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+  }
+
+  .section-head h2 {
+    font-size: clamp(1.7rem, 3.4vw, 2.55rem);
+    font-weight: 800;
+  }
+
+  .section-head > p:last-child:not(.kicker) {
+    margin-top: 0.9rem;
+    color: var(--text-soft);
+  }
+
+  /* Feature cards */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .feature-card {
+    padding: 1.6rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .feature-icon {
+    display: grid;
+    place-items: center;
+    width: 2.7rem;
+    height: 2.7rem;
+    margin-bottom: 1rem;
+    border-radius: 12px;
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+  }
+  .feature-icon svg { width: 1.3rem; height: 1.3rem; }
+
+  .feature-card h3 { font-size: 1.06rem; font-weight: 700; }
+  .feature-card p { margin-top: 0.5rem; color: var(--text-soft); font-size: 0.9rem; }
+
+  /* Steps */
+  .steps {
+    display: grid;
+    gap: 0.9rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 3.2rem minmax(0, 1fr);
+    gap: 1.2rem;
+    padding: 1.4rem 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+  }
+
+  .step-index {
+    display: grid;
+    place-items: center;
+    width: 2.7rem;
+    height: 2.7rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+    background: var(--surface-2);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .step-body h3 { font-size: 1.02rem; font-weight: 700; }
+  .step-body > p { margin-top: 0.35rem; color: var(--text-soft); font-size: 0.9rem; }
+
+  .code-block {
+    position: relative;
+    margin-top: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: var(--radius-md);
+    background: var(--code-bg);
+  }
+
+  .code-block pre {
+    margin: 0;
+    padding: 1rem 5.2rem 1rem 1.1rem;
+    overflow-x: auto;
+    color: var(--code-text);
+    font-size: 0.84rem;
+    line-height: 1.75;
+    tab-size: 2;
+  }
+  .code-block pre code { font-family: var(--font-mono); font-size: inherit; }
+
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #e9dfd1;
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1;
+    padding: 0.36rem 0.55rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .copy-btn:hover { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.28); }
+  .copy-btn.copied { background: var(--ok); border-color: transparent; color: #fff; }
+
+  .code-block .copy-btn {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+  }
+
+  .steps-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    margin-top: 1.2rem;
+    padding: 0.95rem 1.1rem;
+    border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+    border-radius: var(--radius-md);
+    background: var(--accent-soft);
+    color: var(--text-soft);
+    font-size: 0.88rem;
+  }
+  .steps-note svg { flex: none; width: 1.15rem; height: 1.15rem; margin-top: 0.18rem; color: var(--accent); }
+  .steps-note strong { color: var(--text); }
+
+  /* Command reference */
+  .filter-bar {
+    display: none;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.4rem;
+  }
+  .js .filter-bar { display: flex; }
+
+  .filter-label {
+    color: var(--text-soft);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .filter-input-wrap {
+    position: relative;
+    flex: 1 1 16rem;
+    min-width: 0;
+  }
+
+  .filter-input-wrap > svg {
+    position: absolute;
+    top: 50%;
+    left: 1rem;
+    width: 1rem;
+    height: 1rem;
+    color: var(--muted);
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  #command-filter {
+    width: 100%;
+    padding: 0.72rem 2.9rem 0.72rem 2.55rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.9rem;
+    appearance: none;
+  }
+  #command-filter::placeholder { color: var(--muted); }
+
+  #filter-clear {
+    position: absolute;
+    top: 50%;
+    right: 0.4rem;
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border: 0;
+    border-radius: 50%;
+    background: var(--surface-2);
+    color: var(--text-soft);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    transform: translateY(-50%);
+  }
+  #filter-clear:hover { color: var(--accent); }
+
+  .filter-count {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
+
+  .filter-empty {
+    margin-bottom: 1.2rem;
+    padding: 1rem 1.2rem;
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-md);
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .command-groups { display: grid; gap: 1rem; }
+
+  .command-group {
+    padding: 1.3rem 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+  }
+
+  .command-group h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.98rem;
+    font-weight: 700;
+  }
+  .command-group h3::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-soft);
+  }
+
+  .command {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+    align-items: center;
+    gap: 1.4rem;
+    padding: 0.92rem 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .command:last-child { border-bottom: 0; padding-bottom: 0.15rem; }
+  .command:first-of-type { padding-top: 0.95rem; }
+
+  .command-title { font-size: 0.9rem; font-weight: 650; }
+  .command-desc { margin-top: 0.12rem; color: var(--muted); font-size: 0.8rem; line-height: 1.55; }
+
+  .command-line {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+    padding: 0.32rem 0.38rem 0.32rem 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+    background: var(--code-bg);
+  }
+  .command-line code {
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    padding: 0.28rem 0;
+    color: var(--code-text);
+    font-size: 0.8rem;
+    white-space: nowrap;
+    scrollbar-width: thin;
+  }
+  .command-line .copy-btn { flex: none; }
+
+  .command-flag {
+    display: inline-block;
+    margin-left: 0.35rem;
+    padding: 0.05rem 0.38rem;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+    font-family: var(--font-sans);
+    font-size: 0.66rem;
+    font-weight: 700;
+    vertical-align: 1px;
+  }
+
+  /* Practice routes */
+  .routes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .route-card {
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+  }
+
+  .route-level {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+
+  .route-card h3 { margin-top: 0.35rem; font-size: 1.1rem; }
+  .route-card p { margin-top: 0.4rem; color: var(--text-soft); font-size: 0.88rem; }
+
+  .route-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .route-tags li {
+    padding: 0.22rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--text-soft);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+  }
+
+  /* Files table */
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+  }
+
+  table {
+    width: 100%;
+    min-width: 34rem;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  thead th {
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  tbody td {
+    padding: 0.95rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-soft);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody td:first-child { color: var(--text); white-space: nowrap; }
+  tbody code {
+    padding: 0.12rem 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 0.78rem;
+  }
+
+  .file-note {
+    margin-top: 0.9rem;
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+
+  /* FAQ */
+  .faq { display: grid; gap: 0.65rem; max-width: 52rem; }
+
+  .faq-item {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    overflow: hidden;
+  }
+
+  .faq-item summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.2rem;
+    font-size: 0.94rem;
+    font-weight: 650;
+    cursor: pointer;
+    list-style: none;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: "+";
+    flex: none;
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+  .faq-item[open] summary::after { content: "−"; }
+  .faq-item summary:hover { color: var(--accent); }
+
+  .faq-body {
+    padding: 0 1.2rem 1.1rem;
+    color: var(--text-soft);
+    font-size: 0.88rem;
+  }
+  .faq-body p + p { margin-top: 0.55rem; }
+  .faq-body code {
+    padding: 0.1rem 0.35rem;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 0.8rem;
+  }
+  .faq-body pre {
+    margin: 0.6rem 0 0;
+    padding: 0.7rem 0.9rem;
+    overflow-x: auto;
+    border-radius: 10px;
+    background: var(--code-bg);
+    color: var(--code-text);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.65;
+  }
+
+  /* Footer */
+  .site-footer {
+    border-top: 1px solid var(--border);
+    background: var(--bg-deep);
+    padding: 2.4rem 0;
+  }
+
+  .footer-inner {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .footer-brand { font-weight: 800; letter-spacing: -0.01em; }
+  .footer-brand span { color: var(--muted); font-weight: 500; }
+  .footer-note { margin-top: 0.4rem; max-width: 34rem; color: var(--muted); font-size: 0.8rem; }
+  .footer-note code { padding: 0.08rem 0.3rem; border-radius: 4px; background: var(--surface-2); }
+
+  .footer-links { display: flex; flex-wrap: wrap; gap: 1rem; font-size: 0.84rem; font-weight: 600; }
+  .footer-links a { text-decoration: none; }
+  .footer-links a:hover { text-decoration: underline; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .hero-grid { grid-template-columns: minmax(0, 1fr); }
+    .terminal { transform: none; max-width: 40rem; }
+    .feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .command { grid-template-columns: minmax(0, 1fr); gap: 0.6rem; }
+    .command-desc { max-width: 40rem; }
+  }
+
+  @media (max-width: 720px) {
+    html { scroll-padding-top: 7rem; }
+    .header-inner {
+      flex-wrap: wrap;
+      gap: 0.4rem 0.75rem;
+      padding-block: 0.65rem;
+    }
+    .site-nav {
+      order: 3;
+      width: 100%;
+      margin-left: 0;
+      gap: 0.2rem;
+      overflow-x: auto;
+      padding-bottom: 0.1rem;
+      scrollbar-width: none;
+    }
+    .site-nav::-webkit-scrollbar { display: none; }
+    .site-nav a { padding: 0.35rem 0.55rem; font-size: 0.8rem; white-space: nowrap; }
+    .brand-sub { display: none; }
+    .hero { padding-top: 2.4rem; }
+    .hero-stats { gap: 1.4rem; }
+    .feature-grid { grid-template-columns: minmax(0, 1fr); }
+    .step { grid-template-columns: 2.4rem minmax(0, 1fr); gap: 0.9rem; padding: 1.2rem; }
+    .step-index { width: 2.2rem; height: 2.2rem; font-size: 0.72rem; }
+    .routes { grid-template-columns: minmax(0, 1fr); }
+    .terminal-body { font-size: 0.74rem; }
+    .footer-inner { flex-direction: column; }
+  }
+
+  @media (max-width: 420px) {
+    .wrap, .header-inner { width: min(100% - 1.6rem, var(--wrap)); }
+    .hero h1 { font-size: clamp(2.1rem, 10vw, 2.6rem); }
+    .hero h1 em { white-space: normal; }
+    .hero-actions .btn { width: 100%; }
+    .hero-stats { justify-content: space-between; gap: 1rem; }
+    .command-group { padding: 1.1rem; }
+    .command-line code { font-size: 0.74rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">跳到正文</a>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="#top" aria-label="gitskills 用法指南，回到顶部">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="6" cy="5" r="2.1"></circle>
+        <circle cx="6" cy="19" r="2.1"></circle>
+        <circle cx="18" cy="7" r="2.1"></circle>
+        <path d="M6 7.1v9.8"></path>
+        <path d="M18 9.1v1.4a4.5 4.5 0 0 1-4.5 4.5H8.2"></path>
+      </svg>
+      <span>gitskills</span>
+      <span class="brand-sub">用法指南</span>
+    </a>
+
+    <nav class="site-nav" aria-label="页面导航">
+      <a href="#start">快速开始</a>
+      <a href="#commands">命令速查</a>
+      <a href="#practice">练习路线</a>
+      <a href="#files">仓库文件</a>
+      <a href="#faq">常见问题</a>
+    </nav>
+
+    <button id="theme-toggle" class="icon-button" type="button" aria-label="切换到深色模式" aria-pressed="false" title="切换主题">
+      <svg class="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+      </svg>
+      <svg class="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" id="top">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Git 练习场 · 约 5 分钟上手</p>
+        <h1>把 Git 用熟，<br><em>从一个仓库开始</em></h1>
+        <p class="lead">gitskills 是一个用来练习 Git 常用操作的极简示例仓库。没有业务代码，没有构建步骤，只有几个文本文件——适合反复折腾克隆、分支、提交、合并与推送。</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#start">
+            开始练习
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+          </a>
+          <a class="btn btn-ghost" href="#commands">查看命令速查</a>
+        </div>
+        <dl class="hero-stats">
+          <div><dt>5</dt><dd>个上手步骤</dd></div>
+          <div><dt>21</dt><dd>条常用命令</dd></div>
+          <div><dt>0</dt><dd>个外部依赖</dd></div>
+        </dl>
+      </div>
+
+      <figure class="terminal" aria-labelledby="terminal-caption">
+        <div class="terminal-bar">
+          <span class="terminal-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span class="terminal-title">~/gitskills — zsh</span>
+        </div>
+        <pre class="terminal-body"><code><span class="t-prompt">$</span> git clone https://github.com/<wbr>xyywp/gitskills.git
+<span class="t-out">Cloning into 'gitskills'...</span>
+
+<span class="t-prompt">$</span> cd gitskills
+<span class="t-prompt">$</span> git switch -c practice/hello
+<span class="t-out">Switched to a new branch 'practice/hello'</span>
+
+<span class="t-prompt">$</span> echo "hello git" &gt;&gt; yxx.txt
+<span class="t-prompt">$</span> git add yxx.txt
+<span class="t-prompt">$</span> git commit -m "docs: 第一次练习"
+<span class="t-out">[practice/hello 3f2a1c9] docs: 第一次练习</span>
+</code></pre>
+        <figcaption id="terminal-caption" class="terminal-caption">示例会话 · 分支名和提交说明可以换成你自己的</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section" id="overview">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="kicker">为什么是它</p>
+        <h2>一个小仓库，覆盖 Git 的主干操作</h2>
+        <p>不用先搭一个真实项目。这里只保留最少的文件，让你把注意力放在 Git 本身。</p>
+      </header>
+
+      <div class="feature-grid">
+        <article class="feature-card">
+          <div class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h6M4 12h10M4 18h6"></path><path d="m16 8 3 3-3 3"></path></svg>
+          </div>
+          <h3>完整协作链路</h3>
+          <p>从 <code>clone</code> 到 Pull Request，把日常开发中最常走的一条路径完整练一遍。</p>
+        </article>
+
+        <article class="feature-card">
+          <div class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"></path></svg>
+          </div>
+          <h3>零门槛，纯文本</h3>
+          <p>不需要 Node、数据库或任何构建工具。装好 Git，一个终端就够用。</p>
+        </article>
+
+        <article class="feature-card">
+          <div class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg>
+          </div>
+          <h3>放心试错</h3>
+          <p>建议总在独立的练习分支上操作，保持 <code>master</code> 干净；改坏了，删掉重来即可。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt" id="start">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="kicker">快速开始</p>
+        <h2>五步完成第一次练习</h2>
+        <p>下面的命令以公开仓库为例，并假设你的默认分支是 <code>master</code>。没有写权限？先 Fork 一份到自己的账号，再把地址换成你的 fork。</p>
+      </header>
+
+      <ol class="steps">
+        <li class="step">
+          <div class="step-index" aria-hidden="true">01</div>
+          <div class="step-body">
+            <h3>克隆仓库</h3>
+            <p>把仓库复制到本地，并进入项目目录。</p>
+            <div class="code-block">
+              <pre><code>git clone https://github.com/xyywp/gitskills.git
+cd gitskills</code></pre>
+              <button class="copy-btn" type="button" aria-label="复制克隆命令">复制</button>
+            </div>
+          </div>
+        </li>
+
+        <li class="step">
+          <div class="step-index" aria-hidden="true">02</div>
+          <div class="step-body">
+            <h3>新建练习分支</h3>
+            <p>不要直接在 <code>master</code> 上改。新建一个带描述的分支，失败了大不了删掉。Git 2.23 以前的版本可以用 <code>git checkout -b</code> 代替。</p>
+            <div class="code-block">
+              <pre><code>git switch -c practice/hello</code></pre>
+              <button class="copy-btn" type="button" aria-label="复制新建分支命令">复制</button>
+            </div>
+          </div>
+        </li>
+
+        <li class="step">
+          <div class="step-index" aria-hidden="true">03</div>
+          <div class="step-body">
+            <h3>做一点小改动</h3>
+            <p>往示例文件末尾追加一行，然后用 <code>status</code> 和 <code>diff</code> 观察 Git 眼中的变化。</p>
+            <div class="code-block">
+              <pre><code>echo "hello git" &gt;&gt; yxx.txt
+git status
+git diff</code></pre>
+              <button class="copy-btn" type="button" aria-label="复制修改与查看命令">复制</button>
+            </div>
+          </div>
+        </li>
+
+        <li class="step">
+          <div class="step-index" aria-hidden="true">04</div>
+          <div class="step-body">
+            <h3>提交这次改动</h3>
+            <p>先暂存文件，再写一条清楚的提交说明。最后用 <code>log</code> 确认提交已经进入历史。</p>
+            <div class="code-block">
+              <pre><code>git add yxx.txt
+git commit -m "docs: 第一次练习"
+git log --oneline -1</code></pre>
+              <button class="copy-btn" type="button" aria-label="复制提交命令">复制</button>
+            </div>
+          </div>
+        </li>
+
+        <li class="step">
+          <div class="step-index" aria-hidden="true">05</div>
+          <div class="step-body">
+            <h3>推送并打开 Pull Request</h3>
+            <p>推送练习分支，然后到 GitHub 发起 Pull Request，把改动合回 <code>master</code>。如果只是在自己的 fork 里练习，不合并也完全可以。</p>
+            <div class="code-block">
+              <pre><code>git push -u origin practice/hello</code></pre>
+              <button class="copy-btn" type="button" aria-label="复制推送命令">复制</button>
+            </div>
+          </div>
+        </li>
+      </ol>
+
+      <p class="steps-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8h.01M11 12h1v4h1"></path></svg>
+        <span><strong>没有写权限？</strong>在 GitHub 页面右上角点 <strong>Fork</strong>，克隆自己的 fork 后推送；练习内容不会影响原仓库。</span>
+      </p>
+    </div>
+  </section>
+
+  <section class="section" id="commands">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="kicker">命令速查</p>
+        <h2>21 条够用的 Git 命令</h2>
+        <p>按场景分组，点击右侧按钮即可复制。先把常用的几条练到不用查，再慢慢扩展。</p>
+      </header>
+
+      <div class="filter-bar">
+        <label class="filter-label" for="command-filter">筛选命令</label>
+        <div class="filter-input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <input id="command-filter" type="search" placeholder="试试输入 commit、分支、撤销…" autocomplete="off" aria-describedby="filter-count">
+          <button id="filter-clear" type="button" aria-label="清除筛选" hidden>&times;</button>
+        </div>
+        <p class="filter-count" id="filter-count" aria-live="polite">共 21 条命令</p>
+      </div>
+      <p class="filter-empty" id="filter-empty" hidden>没有匹配的命令，换个关键词试试。</p>
+
+      <div class="command-groups">
+        <section class="command-group" aria-labelledby="commands-view">
+          <h3 id="commands-view">查看与比较</h3>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">查看当前状态</p>
+              <p class="command-desc">随时确认哪些文件改了、哪些已经进入暂存区。</p>
+            </div>
+            <div class="command-line">
+              <code>git status</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git status">复制</button>
+            </div>
+          </div>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">查看未暂存的改动</p>
+              <p class="command-desc">逐行看工作区里还没 add 的内容。</p>
+            </div>
+            <div class="command-line">
+              <code>git diff</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git diff">复制</button>
+            </div>
+          </div>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">查看已暂存的改动</p>
+              <p class="command-desc">提交前最后确认一次：这次到底会提交什么。</p>
+            </div>
+            <div class="command-line">
+              <code>git diff --staged</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git diff --staged">复制</button>
+            </div>
+          </div>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">图形化查看历史</p>
+              <p class="command-desc">把分支、合并与标签画成一张小图，排查历史很直观。</p>
+            </div>
+            <div class="command-line">
+              <code>git log --oneline --graph --decorate --all</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：查看图形化历史">复制</button>
+            </div>
+          </div>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">查看某次提交</p>
+              <p class="command-desc">看这次提交改了什么，以及完整的提交信息。</p>
+            </div>
+            <div class="command-line">
+              <code>git show &lt;commit&gt;</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git show">复制</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="command-group" aria-labelledby="commands-commit">
+          <h3 id="commands-commit">提交</h3>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">暂存文件</p>
+              <p class="command-desc">把指定文件放进暂存区；<code>git add -p</code> 可以逐块挑选。</p>
+            </div>
+            <div class="command-line">
+              <code>git add &lt;file&gt;</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git add">复制</button>
+            </div>
+          </div>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">提交暂存内容</p>
+              <p class="command-desc">提交说明写清楚「做了什么」，比写「update」有用得多。</p>
+            </div>
+            <div class="command-line">
+              <code>git commit -m "说明"</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git commit">复制</button>
+            </div>
+          </div>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">并入上一次提交<span class="command-flag">未推送时</span></p>
+              <p class="command-desc">补一个文件或改一下说明，保持提交历史干净。</p>
+            </div>
+            <div class="command-line">
+              <code>git commit --amend --no-edit</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git commit --amend">复制</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="command-group" aria-labelledby="commands-branch">
+          <h3 id="commands-branch">分支与合并</h3>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">列出本地分支</p>
+              <p class="command-desc">同时显示每个分支正在跟踪的远端分支。</p>
+            </div>
+            <div class="command-line">
+              <code>git branch -vv</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git branch -vv">复制</button>
+            </div>
+          </div>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">新建并切换分支</p>
+              <p class="command-desc">一个练习一个分支，互不干扰；老版本 Git 用 <code>checkout -b</code>。</p>
+            </div>
+            <div class="command-line">
+              <code>git switch -c practice/hello</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git switch -c">复制</button>
+            </div>
+          </div>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">切回主分支</p>
+              <p class="command-desc">合并之前，先回到要接收改动的那个分支。</p>
+            </div>
+            <div class="command-line">
+              <code>git switch master</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git switch master">复制</button>
+            </div>
+          </div>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">合并分支</p>
+              <p class="command-desc">把练习分支的提交合并进当前分支，冲突时按 Git 的提示处理。</p>
+            </div>
+            <div class="command-line">
+              <code>git merge practice/hello</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git merge">复制</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="command-group" aria-labelledby="commands-remote">
+          <h3 id="commands-remote">同步远端</h3>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">查看远端地址</p>
+              <p class="command-desc">确认 origin 指向哪里，尤其是 fork 之后。</p>
+            </div>
+            <div class="command-line">
+              <code>git remote -v</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git remote -v">复制</button>
+            </div>
+          </div>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">拉取远端更新</p>
+              <p class="command-desc">只更新远端跟踪分支，顺手清掉已经删除的远端分支。</p>
+            </div>
+            <div class="command-line">
+              <code>git fetch --prune</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git fetch --prune">复制</button>
+            </div>
+          </div>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">变基方式拉取</p>
+              <p class="command-desc">把本地提交接到远端最新提交之后，历史更线性。</p>
+            </div>
+            <div class="command-line">
+              <code>git pull --rebase</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git pull --rebase">复制</button>
+            </div>
+          </div>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">首次推送并建立跟踪</p>
+              <p class="command-desc">之后在这个分支上直接 <code>git push</code> 即可。</p>
+            </div>
+            <div class="command-line">
+              <code>git push -u origin practice/hello</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git push -u">复制</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="command-group" aria-labelledby="commands-undo">
+          <h3 id="commands-undo">撤销与暂存</h3>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">放弃未暂存的修改</p>
+              <p class="command-desc">把文件恢复到最近一次提交的状态，改动会丢失。</p>
+            </div>
+            <div class="command-line">
+              <code>git restore &lt;file&gt;</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git restore">复制</button>
+            </div>
+          </div>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">把文件移出暂存区</p>
+              <p class="command-desc">撤销 add，但保留工作区里的实际改动。</p>
+            </div>
+            <div class="command-line">
+              <code>git restore --staged &lt;file&gt;</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git restore --staged">复制</button>
+            </div>
+          </div>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">安全撤销已推送的提交</p>
+              <p class="command-desc">新建一次反向提交，不改写公共历史，适合协作分支。</p>
+            </div>
+            <div class="command-line">
+              <code>git revert &lt;commit&gt;</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git revert">复制</button>
+            </div>
+          </div>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">暂存手头的修改</p>
+              <p class="command-desc">改到一半需要切分支时，先把现场收起来。</p>
+            </div>
+            <div class="command-line">
+              <code>git stash push -m "wip"</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git stash push">复制</button>
+            </div>
+          </div>
+
+          <div class="command" data-command>
+            <div class="command-info">
+              <p class="command-title">恢复暂存的修改</p>
+              <p class="command-desc">回到原来的分支后，把刚才收起来的改动放回来。</p>
+            </div>
+            <div class="command-line">
+              <code>git stash pop</code>
+              <button class="copy-btn" type="button" aria-label="复制命令：git stash pop">复制</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt" id="practice">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="kicker">练习路线</p>
+        <h2>从会用到用得顺手</h2>
+        <p>不必一次学完。按下面的顺序，每次只练一小块，遇到问题再翻命令速查。</p>
+      </header>
+
+      <div class="routes">
+        <article class="route-card">
+          <p class="route-level">Level 01 · 入门</p>
+          <h3>日常四件套</h3>
+          <p>先建立肌肉记忆：看状态、看差异、暂存、提交。这四个动作能覆盖大部分日常操作。</p>
+          <ul class="route-tags">
+            <li>status</li>
+            <li>diff</li>
+            <li>add</li>
+            <li>commit</li>
+            <li>log</li>
+          </ul>
+        </article>
+
+        <article class="route-card">
+          <p class="route-level">Level 02 · 分支</p>
+          <h3>并行开发与合并</h3>
+          <p>用分支隔离每次练习，再把它合回主分支。故意制造一次冲突，学会读懂冲突标记。</p>
+          <ul class="route-tags">
+            <li>switch -c</li>
+            <li>branch -vv</li>
+            <li>merge</li>
+            <li>冲突处理</li>
+          </ul>
+        </article>
+
+        <article class="route-card">
+          <p class="route-level">Level 03 · 协作</p>
+          <h3>和远端保持同步</h3>
+          <p>从 fork、clone 到 push 和 Pull Request，走一遍真实的多人协作流程。</p>
+          <ul class="route-tags">
+            <li>fork</li>
+            <li>remote -v</li>
+            <li>fetch --prune</li>
+            <li>pull --rebase</li>
+            <li>push -u</li>
+          </ul>
+        </article>
+
+        <article class="route-card">
+          <p class="route-level">Level 04 · 进阶</p>
+          <h3>整理历史与救场</h3>
+          <p>学会用 stash 保存现场、用 revert 安全回滚，再用 reflog 把自己从误操作里捞出来。</p>
+          <ul class="route-tags">
+            <li>stash</li>
+            <li>rebase</li>
+            <li>revert</li>
+            <li>cherry-pick</li>
+            <li>reflog</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="files">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="kicker">仓库导航</p>
+        <h2>里面都有什么</h2>
+        <p>仓库刻意保持很小。每个文件都可以随便改，练完推送前记得看一眼 diff。</p>
+      </header>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">文件</th>
+              <th scope="col">用途</th>
+              <th scope="col">适合练习</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>README.md</code></td>
+              <td>项目简介与入口说明</td>
+              <td>修改文档、第一次提交</td>
+            </tr>
+            <tr>
+              <td><code>1.txt</code> <code>2.txt</code> <code>3.txt</code></td>
+              <td>几行示例文本</td>
+              <td>小步修改、add 与 commit</td>
+            </tr>
+            <tr>
+              <td><code>gg.txt</code></td>
+              <td>示例文本，内容可以自由追加</td>
+              <td>diff、log、合并</td>
+            </tr>
+            <tr>
+              <td><code>yxx.txt</code></td>
+              <td>示例文本，适合和别人同时改</td>
+              <td>制造并解决合并冲突</td>
+            </tr>
+            <tr>
+              <td><code>index.html</code></td>
+              <td>本页源码：单文件 HTML + CSS + JS</td>
+              <td>阅读结构，或照着改一份自己的页面</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="file-note">本页没有构建步骤：直接用浏览器打开 <code>index.html</code> 即可；也可以运行 <code>python3 -m http.server</code> 后访问本地地址。</p>
+    </div>
+  </section>
+
+  <section class="section section-alt" id="faq">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="kicker">常见问题</p>
+        <h2>练习时最容易卡住的几件事</h2>
+        <p>大部分问题都能用 <code>git status</code> 的提示解决。先看清楚 Git 在说什么，再决定下一步。</p>
+      </header>
+
+      <div class="faq">
+        <details class="faq-item">
+          <summary>我没有这个仓库的写权限，怎么练？</summary>
+          <div class="faq-body">
+            <p>先在 GitHub 页面点 <strong>Fork</strong>，把仓库复制到自己的账号下，然后克隆你自己的 fork。这样 push 和开 Pull Request 都不会影响原仓库。</p>
+            <pre><code>git clone https://github.com/&lt;你的用户名&gt;/gitskills.git</code></pre>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>提交记录里的作者不是我，怎么办？</summary>
+          <div class="faq-body">
+            <p>Git 的提交作者来自本地配置。在仓库目录里设置一次，之后的新提交就会用这个身份：</p>
+            <pre><code>git config user.name "你的名字"
+git config user.email "you@example.com"</code></pre>
+            <p>这些命令默认只修改当前仓库；如果希望全局生效，加上 <code>--global</code>。</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>改到一半要切分支，怎么办？</summary>
+          <div class="faq-body">
+            <p>先把未提交的改动收进 stash，切到目标分支处理完，再切回来恢复：</p>
+            <pre><code>git stash push -m "wip"
+git switch master
+# ……处理别的事情……
+git switch practice/hello
+git stash pop</code></pre>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>合并时出现冲突，怎么处理？</summary>
+          <div class="faq-body">
+            <p>用 <code>git status</code> 找到冲突文件，打开后会看到 <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>、<code>=======</code>、<code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> 标记。保留需要的内容、删掉标记，然后：</p>
+            <pre><code>git add &lt;冲突文件&gt;
+git commit</code></pre>
+            <p>不确定怎么合并时，先别删任何一边，把文件内容看清楚再动手。</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>已经推送的提交写错了，能改吗？</summary>
+          <div class="faq-body">
+            <p>在共享分支上优先用 <code>git revert &lt;commit&gt;</code> 生成一次反向提交，而不是改写历史。只有在自己独占、没人基于它开发的分支上，才考虑强制推送，并且使用更安全的 <code>--force-with-lease</code>。</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>想彻底重来，怎么办？</summary>
+          <div class="faq-body">
+            <p>最省心的办法是删掉本地目录重新克隆。如果只是想丢掉当前分支上的实验，先切回 <code>master</code>，再删除本地练习分支（未合并的改动会一并消失）：</p>
+            <pre><code>git switch master
+git branch -D practice/hello</code></pre>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <div>
+      <p class="footer-brand">gitskills <span>· Git 用法指南</span></p>
+      <p class="footer-note">纯静态页面，单个 HTML 文件，无外部依赖。示例默认分支为 <code>master</code>，请按你的实际分支名替换。</p>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/xyywp/gitskills">GitHub 仓库</a>
+      <a href="#top">回到顶部</a>
+    </div>
+  </div>
+</footer>
+
+<p id="copy-live" class="sr-only" aria-live="polite"></p>
+
+<script>
+(function () {
+  'use strict';
+
+  var root = document.documentElement;
+  var themeToggle = document.getElementById('theme-toggle');
+
+  function applyTheme(theme) {
+    root.dataset.theme = theme;
+    if (themeToggle) {
+      var dark = theme === 'dark';
+      themeToggle.setAttribute('aria-pressed', String(dark));
+      themeToggle.setAttribute('aria-label', dark ? '切换到浅色模式' : '切换到深色模式');
+    }
+  }
+
+  function storeTheme(theme) {
+    try { localStorage.setItem('gitskills-theme', theme); } catch (error) { /* ignore */ }
+  }
+
+  if (themeToggle) {
+    applyTheme(root.dataset.theme === 'dark' ? 'dark' : 'light');
+    themeToggle.addEventListener('click', function () {
+      var next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      storeTheme(next);
+    });
+  }
+
+  if (window.matchMedia) {
+    var media = window.matchMedia('(prefers-color-scheme: dark)');
+    var onChange = function (event) {
+      var stored = null;
+      try { stored = localStorage.getItem('gitskills-theme'); } catch (error) { /* ignore */ }
+      if (!stored) applyTheme(event.matches ? 'dark' : 'light');
+    };
+    if (media.addEventListener) media.addEventListener('change', onChange);
+    else if (media.addListener) media.addListener(onChange);
+  }
+
+  /* Copy buttons */
+  var liveRegion = document.getElementById('copy-live');
+
+  function fallbackCopy(text) {
+    var textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.top = '-9999px';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    var copied = false;
+    try { copied = document.execCommand('copy'); } catch (error) { copied = false; }
+    document.body.removeChild(textarea);
+    return copied;
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text).then(function () { return true; }, function () {
+        return fallbackCopy(text);
+      });
+    }
+    return Promise.resolve(fallbackCopy(text));
+  }
+
+  document.addEventListener('click', function (event) {
+    var button = event.target.closest('.copy-btn');
+    if (!button) return;
+
+    var scope = button.closest('.code-block, .command-line, .terminal');
+    var code = scope ? scope.querySelector('code') : null;
+    if (!code) return;
+
+    var text = code.textContent.trim();
+    if (button.dataset.defaultLabel === undefined) {
+      button.dataset.defaultLabel = button.textContent;
+    }
+
+    copyText(text).then(function (copied) {
+      button.textContent = copied ? '已复制' : '复制失败';
+      button.classList.toggle('copied', copied);
+      if (liveRegion) {
+        liveRegion.textContent = copied ? '已复制命令：' + text.split('\n')[0] : '复制失败，请手动选择命令。';
+      }
+      window.clearTimeout(button._copyTimer);
+      button._copyTimer = window.setTimeout(function () {
+        button.textContent = button.dataset.defaultLabel;
+        button.classList.remove('copied');
+      }, 1600);
+    });
+  });
+
+  /* Command filter */
+  var filter = document.getElementById('command-filter');
+  var clearButton = document.getElementById('filter-clear');
+  var countLabel = document.getElementById('filter-count');
+  var emptyLabel = document.getElementById('filter-empty');
+  var groups = Array.prototype.slice.call(document.querySelectorAll('.command-group'));
+  var commands = Array.prototype.slice.call(document.querySelectorAll('[data-command]'));
+
+  function applyFilter() {
+    if (!filter) return;
+    var query = filter.value.trim().toLowerCase();
+    var matches = 0;
+
+    commands.forEach(function (command) {
+      var text = command.textContent.toLowerCase();
+      var visible = query === '' || text.indexOf(query) !== -1;
+      command.hidden = !visible;
+      if (visible) matches += 1;
+    });
+
+    groups.forEach(function (group) {
+      var hasVisible = group.querySelector('[data-command]:not([hidden])');
+      group.hidden = !hasVisible;
+    });
+
+    if (countLabel) {
+      countLabel.textContent = query === '' ? '共 ' + commands.length + ' 条命令' : '匹配 ' + matches + ' / ' + commands.length + ' 条命令';
+    }
+    if (emptyLabel) emptyLabel.hidden = matches !== 0;
+    if (clearButton) clearButton.hidden = query === '';
+  }
+
+  if (filter) {
+    filter.addEventListener('input', applyFilter);
+    filter.addEventListener('search', applyFilter);
+  }
+
+  if (clearButton) {
+    clearButton.addEventListener('click', function () {
+      filter.value = '';
+      applyFilter();
+      filter.focus();
+    });
+  }
+
+  /* Scrollspy for the header navigation */
+  var navLinks = Array.prototype.slice.call(document.querySelectorAll('.site-nav a[href^="#"]'));
+  var sections = navLinks.map(function (link) {
+    return document.querySelector(link.getAttribute('href'));
+  }).filter(Boolean);
+
+  function setActive(id) {
+    navLinks.forEach(function (link) {
+      link.setAttribute('aria-current', link.getAttribute('href') === '#' + id ? 'true' : 'false');
+    });
+  }
+
+  if ('IntersectionObserver' in window && sections.length) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) setActive(entry.target.id);
+      });
+    }, { rootMargin: '-35% 0px -55% 0px', threshold: 0 });
+    sections.forEach(function (section) { observer.observe(section); });
+  }
+})();
+</script>
+</body>
+</html>
