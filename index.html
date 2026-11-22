@@ -6,7 +6,7 @@
 <title>gitskills · Git 用法指南</title>
 <meta name="description" content="gitskills 是一个练习 Git 常用操作的示例仓库。本页带你从克隆、分支、提交走到推送与合并，并附 21 条常用命令速查。">
 <meta name="color-scheme" content="light dark">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23b8431d'/%3E%3Ctext x='32' y='44' font-family='monospace' font-size='36' font-weight='bold' text-anchor='middle' fill='%23fff'%3EG%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%23b8431d'/%3E%3Ctext%20x='32'%20y='44'%20font-family='monospace'%20font-size='36'%20font-weight='bold'%20text-anchor='middle'%20fill='%23fff'%3EG%3C/text%3E%3C/svg%3E">
 <script>
 (function () {
   var theme = 'light';
@@ -82,7 +82,7 @@
 
   html {
     scroll-behavior: smooth;
-    scroll-padding-top: 6.5rem;
+    scroll-padding-top: 5.5rem;
     -webkit-text-size-adjust: 100%;
   }
 
@@ -454,7 +454,7 @@
   }
 
   /* Sections */
-  .section { padding: clamp(3.5rem, 7vw, 5.5rem) 0; scroll-margin-top: 6rem; }
+  .section { padding: clamp(3.5rem, 7vw, 5.5rem) 0; }
   .section-alt {
     border-block: 1px solid var(--border);
     background: var(--surface-2);
@@ -966,6 +966,7 @@
   }
 
   @media (max-width: 720px) {
+    html { scroll-padding-top: 7rem; }
     .header-inner {
       flex-wrap: wrap;
       gap: 0.4rem 0.75rem;
@@ -1621,7 +1622,7 @@ git log --oneline -1</code></pre>
             <p>Git 的提交作者来自本地配置。在仓库目录里设置一次，之后的新提交就会用这个身份：</p>
             <pre><code>git config user.name "你的名字"
 git config user.email "you@example.com"</code></pre>
-            <p>去掉 <code>--local</code> 默认只影响当前仓库；如果希望全局生效，加上 <code>--global</code>。</p>
+            <p>这些命令默认只修改当前仓库；如果希望全局生效，加上 <code>--global</code>。</p>
           </div>
         </details>
 
